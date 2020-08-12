@@ -11,7 +11,7 @@ class Widget : public QWidget
 
 public:
     Widget(QWidget *parent = nullptr);
-    QVector<double> gaussVector(int radius);
+    double *gaussVector(int radius);
     QImage gaussImage(const QImage &origin, int radius);
 
     ~Widget();
