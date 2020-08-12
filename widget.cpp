@@ -1,4 +1,5 @@
 #include "widget.h"
+#include "boxforgauss.h"
 
 #include <QVector>
 #include <qmath.h>
@@ -16,6 +17,7 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
+    gauss = new BoxForGauss(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     QHBoxLayout *clayout = new QHBoxLayout;
     QHBoxLayout *pixLayout = new QHBoxLayout;
@@ -42,11 +44,11 @@ Widget::Widget(QWidget *parent)
     });
 
     connect(slider, &QSlider::valueChanged, [=](int value){
-        if (value) {
-            QImage origin(filepath);
-            gaussImage(reinterpret_cast<uint32_t *>(origin.bits()), origin.width(), origin.height(), value);
-            destpixmap->setPixmap(QPixmap::fromImage(origin));
-        }
+        QImage origin(filepath);
+//            gaussImage(reinterpret_cast<uint32_t *>(origin.bits()), origin.width(), origin.height(), value);
+        gauss->gaussImage(reinterpret_cast<uint32_t *>(origin.bits()), origin.width(), origin.height(), value);
+        destpixmap->setPixmap(QPixmap::fromImage(origin));
+
     });
 }
 

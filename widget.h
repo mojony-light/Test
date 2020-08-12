@@ -5,6 +5,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 
+class BoxForGauss;
 class Widget : public QWidget
 {
     Q_OBJECT
@@ -18,6 +19,7 @@ public:
 
 private:
     QString filepath = Q_NULLPTR;
+    BoxForGauss *gauss;
 };
 
 #endif // WIDGET_H
