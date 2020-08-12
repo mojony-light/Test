@@ -43,8 +43,9 @@ Widget::Widget(QWidget *parent)
 
     connect(slider, &QSlider::valueChanged, [=](int value){
         if (value) {
-            QImage dest = gaussImage(QImage(filepath), value);
-            destpixmap->setPixmap(QPixmap::fromImage(dest));
+            QImage origin(filepath);
+            gaussImage(reinterpret_cast<uint32_t *>(origin.bits()), origin.width(), origin.height(), value);
+            destpixmap->setPixmap(QPixmap::fromImage(origin));
         }
     });
 }
@@ -77,21 +78,21 @@ double *Widget::gaussVector(int radius)
     return gaussVec;
 }
 
-// 这里仅仅用到一维高斯函数
-QImage Widget::gaussImage(const QImage &origin, int radius)
+// 直接传入bits位偏移比像素快的多
+bool Widget::gaussImage(uint32_t *origin, int width, int height, int radius)
 {
-    QTime time;
-    time.start();
     // fix: 时间
     // y轴偏移
-    if (origin.isNull() || !radius)
-        return QImage();
+    if (!origin || !radius)
+        return false;
 
-    QImage newImage(origin.size(), origin.format());
     double *gaussVec = gaussVector(radius);
+    uint32_t *rowData = new uint32_t[width];
+    uint32_t *columnData = new uint32_t[height];
 
-    for (int y = 0; y < origin.height(); ++y) {
-        for (int x = 0; x < origin.width(); ++x) {
+    for (int y = 0; y < height; ++y) {
+        memcpy(rowData, origin + y * width, sizeof(uint32_t) * uint32_t(width));
+        for (int x = 0; x < width; ++x) {
             // 横向遍历整个image矩阵
             double red = 0, green = 0, blue = 0;  // 用于叠加的rgb值
             double gaussSum = 0;
@@ -100,9 +101,9 @@ QImage Widget::gaussImage(const QImage &origin, int radius)
                 // 将周围n个点的rgb值重新通过权重进行计算，一维高斯函数只有水平的周围坐标
                 int xp = x + l;  // 当前距离x范围的值
 
-                if (0 <= xp && xp < origin.width()) {
+                if (0 <= xp && xp < width) {
                     // 有效区域，0-width的范围内的坐标，取出其rgb进行计算
-                    QRgb rgb = origin.pixel(xp, y);
+                    QRgb rgb = rowData[xp];
                     int cr = qRed(rgb);
                     int cg = qGreen(rgb);
                     int cb = qBlue(rgb);
@@ -115,12 +116,16 @@ QImage Widget::gaussImage(const QImage &origin, int radius)
                 }  // end if
             }  // end for
 
-            newImage.setPixel(x, y, qRgba(int(red / gaussSum), int(green / gaussSum), int(blue/ gaussSum), origin.pixelColor(x, y).alpha()));
+            origin[y * width + x] = qRgb(int(red / gaussSum), int(green / gaussSum), int(blue/ gaussSum));
         }  // end j
     } // end i
 
-    for (int x = 0; x < origin.width(); ++x) {
-        for (int y = 0; y < origin.height(); ++y) {
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            columnData[y] = origin[y * width + x];
+        }
+
+        for (int y = 0; y < height; ++y) {
             // 横向遍历整个image矩阵
             double red = 0, green = 0, blue = 0;  // 用于叠加的rgb值
             double gaussSum = 0;
@@ -129,9 +134,9 @@ QImage Widget::gaussImage(const QImage &origin, int radius)
                 // 将周围n个点的rgb值重新通过权重进行计算，一维高斯函数只有水平的周围坐标
                 int yp = y + l;  // 当前距离x范围的值
 
-                if (0 <= yp && yp < origin.height()) {
+                if (0 <= yp && yp < height) {
                     // 有效区域，0-width的范围内的坐标，取出其rgb进行计算
-                    QRgb rgb = newImage.pixel(x, yp);
+                    QRgb rgb = columnData[yp];
                     int cr = qRed(rgb);
                     int cg = qGreen(rgb);
                     int cb = qBlue(rgb);
@@ -144,14 +149,14 @@ QImage Widget::gaussImage(const QImage &origin, int radius)
                 }  // end if
             }  // end for
 
-            newImage.setPixel(x, y, qRgba(int(red / gaussSum), int(green / gaussSum), int(blue/ gaussSum), origin.pixelColor(x, y).alpha()));
+            origin[y * width + x] = qRgb(int(red / gaussSum), int(green / gaussSum), int(blue/ gaussSum));
         }  // end j
     } // end i
 
     delete[] gaussVec;
-
-    qDebug() << "it cost time : " << time.elapsed();
-    return newImage;
+    delete[] rowData;
+    delete[] columnData;
+    return true;
 }
 
 Widget::~Widget()

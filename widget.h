@@ -12,7 +12,7 @@ class Widget : public QWidget
 public:
     Widget(QWidget *parent = nullptr);
     double *gaussVector(int radius);
-    QImage gaussImage(const QImage &origin, int radius);
+    bool gaussImage(uint32_t *origin, int width, int height, int radius);
 
     ~Widget();
 
