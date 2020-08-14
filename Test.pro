@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets widgets-private
 
 TARGET = Test
 TEMPLATE = app
@@ -27,11 +27,13 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         widget.cpp \
-    boxforgauss.cpp
+    boxforgauss.cpp \
+    gausswidget.cpp
 
 HEADERS += \
         widget.h \
-    boxforgauss.h
+    boxforgauss.h \
+    gausswidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

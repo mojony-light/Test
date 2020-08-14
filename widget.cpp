@@ -1,5 +1,6 @@
 #include "widget.h"
 #include "boxforgauss.h"
+#include "gausswidget.h"
 
 #include <QVector>
 #include <qmath.h>
@@ -17,6 +18,8 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
+    GaussWidget *gw = new GaussWidget(this);
+
     gauss = new BoxForGauss(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     QHBoxLayout *clayout = new QHBoxLayout;
