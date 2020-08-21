@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets widgets-private
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets widgets-private gui-private
 
 TARGET = Test
 TEMPLATE = app

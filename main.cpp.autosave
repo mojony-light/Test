@@ -2,10 +2,10 @@
 #include <QApplication>
 #include "gausswidget.h"
 
-#if defined(qApp)
-#undef qApp
+#if defined(mApp)
+#undef mApp
 #endif
-#define qApp (static_cast<QApplication *>(QCoreApplication::instance()))
+#define mApp (static_cast<QApplication *>(QCoreApplication::instance()))
 
 int main(int argc, char *argv[])
 {

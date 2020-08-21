@@ -4,6 +4,8 @@
 #include "boxforgauss.h"
 
 #include <QWidget>
+#include <QScopedPointer>
+#include <QPointer>
 #include <QMouseEvent>
 
 class GaussWidgetPrivate;
@@ -12,6 +14,7 @@ class GaussWidget : public QWidget
     Q_OBJECT
 public:
     explicit GaussWidget(QWidget *parent = nullptr);
+    ~GaussWidget();  // 必须编写析构函数
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -21,8 +24,8 @@ protected:
     void changeEvent(QEvent *e);
 
 private:
-    Q_DECLARE_PRIVATE(GaussWidget)
-    GaussWidgetPrivate *d_ptr;
+    QScopedPointer<GaussWidgetPrivate> dd_ptr;
+    Q_DECLARE_PRIVATE_D(qGetPtrHelper(dd_ptr), GaussWidget)
     int index = 0;
 };
 

@@ -4,32 +4,36 @@
 #include <QPainter>
 #include <QApplication>
 #include <QScreen>
+#include <qpa/qplatformbackingstore.h>
+#include <QBackingStore>
 
 class GaussWidgetPrivate
 {
     GaussWidgetPrivate(GaussWidget *qq) :
         q_ptr(qq),
         gaussHandler(new BoxForGauss(qq)),
-        radius(00),
-        pPixmap(qGuiApp->primaryScreen()->grabWindow(qq->winId(), 0, 0, qGuiApp->primaryScreen()->size().width(), qGuiApp->primaryScreen()->size().height()))
+        radius(50)
     {
     }
 
-private:
-    Q_DECLARE_PUBLIC(GaussWidget)
     GaussWidget *q_ptr;
     BoxForGauss *gaussHandler;
     int radius;
     QPoint dragPosition;
-    QPixmap pPixmap;
+    Q_DECLARE_PUBLIC(GaussWidget)
 };
 
 GaussWidget::GaussWidget(QWidget *parent)
     : QWidget(parent),
-      d_ptr(new GaussWidgetPrivate(this))
+      dd_ptr(new GaussWidgetPrivate(this))
 {
     this->setAttribute(Qt::WA_TranslucentBackground);
     this->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+}
+
+GaussWidget::~GaussWidget()
+{
+
 }
 
 void GaussWidget::paintEvent(QPaintEvent *e)
@@ -37,14 +41,16 @@ void GaussWidget::paintEvent(QPaintEvent *e)
     Q_D(GaussWidget);
     QWidget::paintEvent(e);
     QPainter p(this);
+    QImage image = window()->backingStore()->handle()->toImage();
+    image.save("/home/uos/Desktop/1.jpg");
+    p.setPen(Qt::NoPen);
+    p.setBrush(Qt::NoBrush);
+    p.setOpacity(0.7);
 
     if (((parent() && (this->windowFlags() & Qt::Dialog)) || !parent())) {
-        QImage pImage = d->pPixmap.toImage();
-        pImage = pImage.copy(this->x(), this->y(), this->width(), this->height());
-        d->gaussHandler->gaussImage(reinterpret_cast<uint32_t *>(pImage.bits()), pImage.width(), pImage.height(), d->radius);
+        d->gaussHandler->gaussImage(reinterpret_cast<uint32_t *>(image.bits()), image.width(), image.height(), d->radius);
         p.setRenderHints(QPainter::Antialiasing);
-//        p.setOpacity(0.2);
-        p.drawImage(0, 0, pImage);
+        p.drawImage(0, 0, image);
     }
 }
 
@@ -76,14 +82,6 @@ void GaussWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void GaussWidget::changeEvent(QEvent *e)
 {
-    Q_D(GaussWidget);
     QWidget::changeEvent(e);
 
-    switch (e->type()) {
-    case QEvent::ActivationChange:
-        d->pPixmap = qGuiApp->primaryScreen()->grabWindow(this->winId(), 0, 0, qGuiApp->primaryScreen()->size().width(), qGuiApp->primaryScreen()->size().height());
-        break;
-    default:
-        break;
-    }
 }
